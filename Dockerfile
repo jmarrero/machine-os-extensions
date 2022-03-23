@@ -14,10 +14,10 @@ COPY --from=gobuild /build/webserver /usr/bin/webserver
 #COPY --from=os /usr/share/rpm-ostree/extensions.yaml /tmp/os-extensions.yaml
 #COPY --from=os /usr/share/rpm /tmp/os-rpmdb
 #RUN rpm-ostree compose extensions --from-rpmdb=/tmp/os-rpmdb /srv/extensions
-RUN mkdir -p /srv/extensions/repo/fedora/releases/32/x86_64
-ADD slack-4.24.0-0.1.fc21.x86_64.rpm /srv/extensions/repo/fedora/releases/32/x86_64/slack-4.24.0-0.1.fc21.x86_64.rpm
+RUN mkdir -p /srv/extensions/
+ADD slack-4.24.0-0.1.fc21.x86_64.rpm /srv/extensions/slack-4.24.0-0.1.fc21.x86_64.rpm
 RUN dnf install -y createrepo_c
-RUN createrepo_c /srv/extensions/repo/fedora/releases/32/x86_64
+RUN createrepo_c /srv/extensions/
 
 CMD ["./usr/bin/webserver"]
 EXPOSE 9666/tcp
