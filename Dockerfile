@@ -6,18 +6,20 @@ RUN go build -o /build/webserver main.go
 # make this build arg like https://github.com/coreos/fcos-derivation-example/blob/6973003bfb4809693b8e25b89c76ad3b70182c4a/Dockerfile#L1 ?
 FROM registry.ci.openshift.org/rhcos-devel/rhel-coreos:4.11 as os
 # This will find all RPMs from 
+#needs the extension.yaml
+RUN curl https://raw.githubusercontent.com/openshift/os/master/extensions.yaml --output extensions.yaml
+RUN rpm-ostree compose extensions --output-dir=/usr/share/rpm-ostree/extensions/ --repo /usr/share/rpm-ostree/ extensions.yaml
 
-#FROM registry.access.redhat.com/ubi8/ubi:latest
-FROM fedora
-COPY --from=gobuild /build/webserver /usr/bin/webserver
-# This 
-#COPY --from=os /usr/share/rpm-ostree/extensions.yaml /tmp/os-extensions.yaml
-#COPY --from=os /usr/share/rpm /tmp/os-rpmdb
-#RUN rpm-ostree compose extensions --from-rpmdb=/tmp/os-rpmdb /srv/extensions
-RUN mkdir -p /srv/extensions/
-ADD slack-4.24.0-0.1.fc21.x86_64.rpm /srv/extensions/slack-4.24.0-0.1.fc21.x86_64.rpm
+FROM centos as repo
+COPY --from=os /usr/share/rpm-ostree/extensions/ /usr/share/rpm-ostree/extensions/
 RUN dnf install -y createrepo_c
-RUN createrepo_c /srv/extensions/
+RUN createrepo_c /usr/share/rpm-ostree/extensions/
+
+
+FROM registry.access.redhat.com/ubi8/ubi:latest
+COPY --from=gobuild /build/webserver /usr/bin/webserver
+COPY --from=repo /usr/share/rpm-ostree/extensions/ /usr/share/rpm-ostree/extensions/
+
 
 CMD ["./usr/bin/webserver"]
 EXPOSE 9666/tcp

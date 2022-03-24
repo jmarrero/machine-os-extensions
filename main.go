@@ -12,7 +12,7 @@ var (
 )
 
 func main() {
-	extensions := http.FileServer(http.Dir("/srv/extensions/"))
+	extensions := http.FileServer(http.Dir("/usr/share/rpm-ostree/extensions/"))
 	flag.Parse()
 	mux := http.NewServeMux()
 	mux.Handle("/", extensions)
